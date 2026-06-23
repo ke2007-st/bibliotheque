@@ -13,19 +13,27 @@ requireAdmin();
 try {
     $pdo = getConnection();
 
-    $totalLivres = (int) $pdo->query('SELECT COUNT(*) FROM livres')->fetchColumn();
-    $disponibles = (int) $pdo->query("SELECT COUNT(*) FROM livres WHERE statut = 'disponible'")->fetchColumn();
-    $empruntes = (int) $pdo->query("SELECT COUNT(*) FROM livres WHERE statut = 'emprunte'")->fetchColumn();
-    $reserves = (int) $pdo->query("SELECT COUNT(*) FROM livres WHERE statut = 'reserve'")->fetchColumn();
+    $totalTitres = (int) $pdo->query('SELECT COUNT(*) FROM livres')->fetchColumn();
+    $totalExemplaires = (int) $pdo->query('SELECT COALESCE(SUM(stock_total), 0) FROM livres')->fetchColumn();
+    $stockDisponible = (int) $pdo->query('SELECT COALESCE(SUM(stock_disponible), 0) FROM livres')->fetchColumn();
+    $empruntsActifs = (int) $pdo->query("SELECT COUNT(*) FROM emprunts WHERE statut = 'actif'")->fetchColumn();
+    $totalAchats = (int) $pdo->query('SELECT COUNT(*) FROM achats')->fetchColumn();
+    $titresDisponibles = (int) $pdo->query("SELECT COUNT(*) FROM livres WHERE statut = 'disponible'")->fetchColumn();
+    $titresEmpruntes = (int) $pdo->query("SELECT COUNT(*) FROM livres WHERE statut = 'emprunte'")->fetchColumn();
+    $titresReserves = (int) $pdo->query("SELECT COUNT(*) FROM livres WHERE statut = 'reserve'")->fetchColumn();
+    $titresVendus = (int) $pdo->query("SELECT COUNT(*) FROM livres WHERE statut = 'vendu' OR stock_total = 0")->fetchColumn();
+    $reservationsActives = (int) $pdo->query("SELECT COUNT(*) FROM reservations WHERE statut = 'actif'")->fetchColumn();
     $totalMembres = (int) $pdo->query("SELECT COUNT(*) FROM utilisateurs WHERE role = 'membre'")->fetchColumn();
     $totalAdmins = (int) $pdo->query("SELECT COUNT(*) FROM utilisateurs WHERE role = 'admin'")->fetchColumn();
 
     $categories = $pdo->query(
-        'SELECT categorie, COUNT(*) AS total FROM livres GROUP BY categorie ORDER BY total DESC'
+        'SELECT categorie, COUNT(*) AS total, COALESCE(SUM(stock_total), 0) AS exemplaires
+         FROM livres GROUP BY categorie ORDER BY total DESC'
     )->fetchAll();
 
     $recent = $pdo->query(
-        'SELECT id, titre, auteur, statut, date_ajout FROM livres ORDER BY date_ajout DESC LIMIT 5'
+        'SELECT id, titre, auteur, statut, stock_total, stock_disponible, date_ajout
+         FROM livres ORDER BY date_ajout DESC LIMIT 5'
     )->fetchAll();
 
     $stmt = $pdo->prepare(
@@ -39,10 +47,16 @@ try {
         'success' => true,
         'data' => [
             'livres' => [
-                'total' => $totalLivres,
-                'disponibles' => $disponibles,
-                'empruntes' => $empruntes,
-                'reserves' => $reserves,
+                'total_titres' => $totalTitres,
+                'total_exemplaires' => $totalExemplaires,
+                'stock_disponible' => $stockDisponible,
+                'emprunts_actifs' => $empruntsActifs,
+                'total_achats' => $totalAchats,
+                'disponibles' => $titresDisponibles,
+                'empruntes' => $titresEmpruntes,
+                'reserves' => $titresReserves,
+                'vendus' => $titresVendus,
+                'reservations_actives' => $reservationsActives,
             ],
             'utilisateurs' => [
                 'membres' => $totalMembres,

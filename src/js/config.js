@@ -11,6 +11,8 @@ const API_CONFIG = {
         me: '/auth/me.php',
         profile: '/auth/profile.php',
         achats: '/achats.php',
+        emprunts: '/emprunts.php',
+        reservations: '/reservations.php',
     },
     headers: {
         'Content-Type': 'application/json',

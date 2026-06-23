@@ -7,6 +7,8 @@ const ADMIN_API = {
         books: '/books.php',
         stats: '/stats.php',
         users: '/users.php',
+        emprunts: '/emprunts.php',
+        reservations: '/reservations.php',
     },
 };
 

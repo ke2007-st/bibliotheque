@@ -26,8 +26,19 @@ docker compose up -d --build
 - Email : `admin@biblio.local`
 - Mot de passe : `admin123`
 
-**Membre** : creer un compte via `/register.html`
-- Mot de passe : min. 8 caracteres, 1 majuscule, 1 minuscule, 1 chiffre
+**Membre demo** (apres chargement du jeu de donnees) :
+- Email : `demo@biblio.local`
+- Mot de passe : `Demo1234`
+
+**Charger le catalogue demo** (80 livres, 10 par scenario) :
+
+```powershell
+Get-Content sql/seed_catalogue_demo.sql | docker compose exec -T db mariadb -ukevine -pkevine1234 php_docker
+```
+
+Scenarios couverts : disponibles, empruntes, mes emprunts, ruptures, reserves bibliotheque, reservables, deja reserves, deja achetes.
+
+**Membre** : creer un compte via `/register.html` ou utiliser le compte demo ci-dessus.
 
 ## Architecture
 

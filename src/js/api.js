@@ -92,6 +92,36 @@ const AchatsAPI = {
     },
 };
 
+const EmpruntsAPI = {
+    getAll() {
+        return apiRequest(API_CONFIG.endpoints.emprunts);
+    },
+    borrow(livreId) {
+        return apiRequest(API_CONFIG.endpoints.emprunts, {
+            method: 'POST',
+            body: JSON.stringify({ livre_id: livreId }),
+        });
+    },
+};
+
+const ReservationsAPI = {
+    getAll() {
+        return apiRequest(API_CONFIG.endpoints.reservations);
+    },
+    reserve(livreId) {
+        return apiRequest(API_CONFIG.endpoints.reservations, {
+            method: 'POST',
+            body: JSON.stringify({ livre_id: livreId }),
+        });
+    },
+    cancel(livreId) {
+        return apiRequest(API_CONFIG.endpoints.reservations, {
+            method: 'DELETE',
+            body: JSON.stringify({ livre_id: livreId }),
+        });
+    },
+};
+
 function showToast(message, type) {
     const toast = document.getElementById('toast');
     if (!toast) return;

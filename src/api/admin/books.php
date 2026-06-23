@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../admin_auth.php';
+require_once __DIR__ . '/../stock_helper.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $pdo = getConnection();
@@ -32,6 +33,15 @@ try {
     jsonError('Erreur serveur.', 500);
 }
 
+function enrichLivre(PDO $pdo, array $livre): array
+{
+    $livre['stock_total'] = (int) $livre['stock_total'];
+    $livre['stock_disponible'] = (int) $livre['stock_disponible'];
+    $livre['emprunts_actifs'] = countActiveEmprunts($pdo, (int) $livre['id']);
+
+    return $livre;
+}
+
 function handleGet(PDO $pdo): void
 {
     if (isset($_GET['id'])) {
@@ -43,7 +53,7 @@ function handleGet(PDO $pdo): void
             jsonError('Livre introuvable', 404);
         }
 
-        jsonResponse(['success' => true, 'data' => $livre]);
+        jsonResponse(['success' => true, 'data' => enrichLivre($pdo, $livre)]);
     }
 
     $sql = 'SELECT * FROM livres WHERE 1=1';
@@ -70,7 +80,11 @@ function handleGet(PDO $pdo): void
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
 
-    jsonResponse(['success' => true, 'data' => $stmt->fetchAll()]);
+    $livres = array_map(function (array $row) use ($pdo) {
+        return enrichLivre($pdo, $row);
+    }, $stmt->fetchAll());
+
+    jsonResponse(['success' => true, 'data' => $livres]);
 }
 
 function handlePost(PDO $pdo): void
@@ -84,9 +98,22 @@ function handlePost(PDO $pdo): void
         jsonError('Le titre et l auteur sont obligatoires.');
     }
 
+    $stockTotal = max(0, (int) ($data['stock_total'] ?? 1));
+    $stockDispo = isset($data['stock_disponible'])
+        ? max(0, (int) $data['stock_disponible'])
+        : $stockTotal;
+
+    $stock = validateStockInput($stockTotal, $stockDispo, 0);
+    $statut = sanitizeString($data['statut'] ?? '') ?: 'disponible';
+    if ($statut === 'reserve') {
+        $statut = 'reserve';
+    } else {
+        $statut = $stock['stock_total'] <= 0 ? 'vendu' : ($stock['stock_disponible'] > 0 ? 'disponible' : 'emprunte');
+    }
+
     $stmt = $pdo->prepare(
-        'INSERT INTO livres (titre, auteur, isbn, categorie, annee, statut, prix, description)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO livres (titre, auteur, isbn, categorie, annee, statut, stock_total, stock_disponible, prix, description)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
 
     $stmt->execute([
@@ -95,16 +122,29 @@ function handlePost(PDO $pdo): void
         sanitizeString($data['isbn'] ?? '') ?: null,
         sanitizeString($data['categorie'] ?? '') ?: 'General',
         !empty($data['annee']) ? (int) $data['annee'] : null,
-        validateStatut(sanitizeString($data['statut'] ?? '') ?: 'disponible'),
+        validateStatut($statut),
+        $stock['stock_total'],
+        $stock['stock_disponible'],
         max(0, (float) ($data['prix'] ?? 9.99)),
         sanitizeString($data['description'] ?? '') ?: null,
     ]);
 
     $id = (int) $pdo->lastInsertId();
+    if (sanitizeString($data['statut'] ?? '') === 'reserve') {
+        $stmt = $pdo->prepare("UPDATE livres SET statut = 'reserve' WHERE id = ?");
+        $stmt->execute([$id]);
+    } else {
+        syncLivreStatut($pdo, $id);
+    }
+
     $stmt = $pdo->prepare('SELECT * FROM livres WHERE id = ?');
     $stmt->execute([$id]);
 
-    jsonResponse(['success' => true, 'message' => 'Livre ajoute.', 'data' => $stmt->fetch()], 201);
+    jsonResponse([
+        'success' => true,
+        'message' => 'Livre ajoute.',
+        'data' => enrichLivre($pdo, $stmt->fetch()),
+    ], 201);
 }
 
 function handlePut(PDO $pdo): void
@@ -116,10 +156,11 @@ function handlePut(PDO $pdo): void
         jsonError('ID du livre requis.');
     }
 
-    $stmt = $pdo->prepare('SELECT id FROM livres WHERE id = ?');
+    $stmt = $pdo->prepare('SELECT * FROM livres WHERE id = ?');
     $stmt->execute([$id]);
+    $existing = $stmt->fetch();
 
-    if (!$stmt->fetch()) {
+    if (!$existing) {
         jsonError('Livre introuvable', 404);
     }
 
@@ -130,8 +171,16 @@ function handlePut(PDO $pdo): void
         jsonError('Le titre et l auteur sont obligatoires.');
     }
 
+    $empruntsActifs = countActiveEmprunts($pdo, $id);
+    $stockTotal = max(0, (int) ($data['stock_total'] ?? $existing['stock_total']));
+    $stockDispo = max(0, (int) ($data['stock_disponible'] ?? $existing['stock_disponible']));
+    $stock = validateStockInput($stockTotal, $stockDispo, $empruntsActifs);
+
+    $requestedStatut = sanitizeString($data['statut'] ?? $existing['statut']);
+    $statut = validateStatut($requestedStatut === '' ? 'disponible' : $requestedStatut);
+
     $stmt = $pdo->prepare(
-        'UPDATE livres SET titre = ?, auteur = ?, isbn = ?, categorie = ?, annee = ?, statut = ?, prix = ?, description = ?
+        'UPDATE livres SET titre = ?, auteur = ?, isbn = ?, categorie = ?, annee = ?, statut = ?, stock_total = ?, stock_disponible = ?, prix = ?, description = ?
          WHERE id = ?'
     );
 
@@ -141,16 +190,29 @@ function handlePut(PDO $pdo): void
         sanitizeString($data['isbn'] ?? '') ?: null,
         sanitizeString($data['categorie'] ?? '') ?: 'General',
         !empty($data['annee']) ? (int) $data['annee'] : null,
-        validateStatut(sanitizeString($data['statut'] ?? '') ?: 'disponible'),
+        $statut,
+        $stock['stock_total'],
+        $stock['stock_disponible'],
         max(0, (float) ($data['prix'] ?? 9.99)),
         sanitizeString($data['description'] ?? '') ?: null,
         $id,
     ]);
 
+    if ($statut === 'reserve') {
+        $stmt = $pdo->prepare("UPDATE livres SET statut = 'reserve' WHERE id = ?");
+        $stmt->execute([$id]);
+    } else {
+        syncLivreStatut($pdo, $id);
+    }
+
     $stmt = $pdo->prepare('SELECT * FROM livres WHERE id = ?');
     $stmt->execute([$id]);
 
-    jsonResponse(['success' => true, 'message' => 'Livre modifie.', 'data' => $stmt->fetch()]);
+    jsonResponse([
+        'success' => true,
+        'message' => 'Livre modifie.',
+        'data' => enrichLivre($pdo, $stmt->fetch()),
+    ]);
 }
 
 function handleDelete(PDO $pdo): void
@@ -159,6 +221,10 @@ function handleDelete(PDO $pdo): void
 
     if ($id <= 0) {
         jsonError('ID du livre requis.');
+    }
+
+    if (countActiveEmprunts($pdo, $id) > 0) {
+        jsonError('Impossible de supprimer : emprunts actifs en cours.');
     }
 
     $stmt = $pdo->prepare('DELETE FROM livres WHERE id = ?');

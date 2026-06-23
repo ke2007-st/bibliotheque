@@ -5,6 +5,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/stock_helper.php';
 
+const EMPRUNT_DUREE_JOURS = 21;
+
 $method = $_SERVER['REQUEST_METHOD'];
 $pdo = getConnection();
 $user = requireMember();
@@ -25,12 +27,12 @@ try {
 function handleGet(PDO $pdo, array $user): void
 {
     $stmt = $pdo->prepare(
-        'SELECT a.id, a.prix_paye, a.date_achat,
-                l.id AS livre_id, l.titre, l.auteur, l.categorie, l.isbn
-         FROM achats a
-         INNER JOIN livres l ON l.id = a.livre_id
-         WHERE a.utilisateur_id = ?
-         ORDER BY a.date_achat DESC'
+        'SELECT e.id, e.livre_id, e.date_emprunt, e.date_retour_prevue, e.date_retour, e.statut,
+                l.titre, l.auteur, l.categorie, l.isbn
+         FROM emprunts e
+         INNER JOIN livres l ON l.id = e.livre_id
+         WHERE e.utilisateur_id = ?
+         ORDER BY e.date_emprunt DESC'
     );
     $stmt->execute([(int) $user['id']]);
 
@@ -48,7 +50,7 @@ function handlePost(PDO $pdo, array $user): void
 
     $pdo->beginTransaction();
 
-    $stmt = $pdo->prepare('SELECT id, titre, statut, prix, stock_total, stock_disponible FROM livres WHERE id = ? FOR UPDATE');
+    $stmt = $pdo->prepare('SELECT id, titre, statut, stock_total, stock_disponible FROM livres WHERE id = ? FOR UPDATE');
     $stmt->execute([$livreId]);
     $livre = $stmt->fetch();
 
@@ -57,31 +59,35 @@ function handlePost(PDO $pdo, array $user): void
         jsonError('Livre introuvable.', 404);
     }
 
-    if (!isLivreAchetable($livre)) {
+    if (!isLivreEmpruntable($livre)) {
         $pdo->rollBack();
-        jsonError('Ce livre n est pas disponible a l achat (stock epuise ou reserve).');
+        jsonError('Ce livre n est pas disponible a l emprunt (stock epuise ou reserve).');
     }
 
     $stmt = $pdo->prepare(
         'SELECT id FROM achats WHERE utilisateur_id = ? AND livre_id = ?'
     );
     $stmt->execute([(int) $user['id'], $livreId]);
-
     if ($stmt->fetch()) {
         $pdo->rollBack();
-        jsonError('Vous avez deja achete ce livre.', 409);
+        jsonError('Vous possedez deja ce livre.');
     }
 
-    $prix = (float) $livre['prix'];
+    $stmt = $pdo->prepare(
+        "SELECT id FROM emprunts WHERE utilisateur_id = ? AND livre_id = ? AND statut = 'actif'"
+    );
+    $stmt->execute([(int) $user['id'], $livreId]);
+    if ($stmt->fetch()) {
+        $pdo->rollBack();
+        jsonError('Vous avez deja emprunte ce livre.');
+    }
 
     $stmt = $pdo->prepare(
-        'INSERT INTO achats (utilisateur_id, livre_id, prix_paye) VALUES (?, ?, ?)'
+        'INSERT INTO emprunts (utilisateur_id, livre_id, date_retour_prevue) VALUES (?, ?, DATE_ADD(CURDATE(), INTERVAL ? DAY))'
     );
-    $stmt->execute([(int) $user['id'], $livreId, $prix]);
+    $stmt->execute([(int) $user['id'], $livreId, EMPRUNT_DUREE_JOURS]);
 
-    $stmt = $pdo->prepare(
-        'UPDATE livres SET stock_total = stock_total - 1, stock_disponible = stock_disponible - 1 WHERE id = ?'
-    );
+    $stmt = $pdo->prepare('UPDATE livres SET stock_disponible = stock_disponible - 1 WHERE id = ?');
     $stmt->execute([$livreId]);
     syncLivreStatut($pdo, $livreId);
 
@@ -89,12 +95,11 @@ function handlePost(PDO $pdo, array $user): void
 
     jsonResponse([
         'success' => true,
-        'message' => 'Achat confirme : ' . $livre['titre'],
+        'message' => 'Emprunt confirme : ' . $livre['titre'],
         'data' => [
-            'achat_id' => (int) $pdo->lastInsertId(),
+            'emprunt_id' => (int) $pdo->lastInsertId(),
             'livre_id' => $livreId,
             'titre' => $livre['titre'],
-            'prix_paye' => $prix,
         ],
     ], 201);
 }

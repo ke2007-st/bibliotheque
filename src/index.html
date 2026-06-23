@@ -4,138 +4,107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ma Bibliotheque</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=13">
 </head>
 <body>
     <div class="app">
-        <aside class="sidebar">
-            <div class="logo">
+        <header class="site-header">
+            <div class="header-brand">
                 <span class="logo-icon">📚</span>
-                <h1>Biblio<span>Dash</span></h1>
+                <h1>Biblio<span>teque</span></h1>
             </div>
 
-            <div class="user-card" id="user-card">
-                <div class="user-avatar" id="user-avatar">?</div>
-                <div>
-                    <p class="user-name" id="user-name">Chargement...</p>
-                    <span class="user-role role-membre" id="user-role">Membre</span>
+            <div class="header-right">
+                <nav class="header-nav" id="header-nav" aria-label="Navigation principale">
+                    <ul class="nav-list">
+                        <li><a href="#page-accueil" class="nav-link active" data-page="accueil">Catalogue</a></li>
+                        <li><a href="#page-emprunts" class="nav-link" data-page="emprunts">Mes emprunts</a></li>
+                        <li><a href="#page-reservations" class="nav-link" data-page="reservations">Mes reservations</a></li>
+                        <li><a href="#page-achats" class="nav-link" data-page="achats">Mes achats</a></li>
+                        <li><a href="#page-profil" class="nav-link" data-page="profil">Mon profil</a></li>
+                    </ul>
+                </nav>
+
+                <div class="user-card" id="user-card">
+                    <div class="user-avatar" id="user-avatar">?</div>
+                    <div class="user-info">
+                        <p class="user-name" id="user-name">Chargement...</p>
+                        <span class="user-role role-membre" id="user-role">Membre</span>
+                    </div>
                 </div>
+
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-logout">Deconnexion</button>
+                <button type="button" class="menu-toggle" id="menu-toggle" aria-label="Menu" aria-expanded="false">☰</button>
             </div>
+        </header>
 
-            <nav class="nav">
-                <button class="nav-btn active" data-view="dashboard">Tableau de bord</button>
-                <button class="nav-btn" data-view="livres">Catalogue</button>
-                <button class="nav-btn" data-view="achats">Mes achats</button>
-                <button class="nav-btn" data-view="profil">Mon profil</button>
-            </nav>
+        <main class="content-area">
+            <!-- Accueil = Catalogue visuel -->
+            <section id="page-accueil" class="page page-catalog active">
+                <header class="catalog-hero">
+                    <h2>Notre collection</h2>
+                    <p class="subtitle">Parcourez, empruntez ou achetez en un clic</p>
+                </header>
 
-            <div class="sidebar-actions">
-                <button class="btn btn-secondary btn-full" id="btn-logout">Deconnexion</button>
-            </div>
-
-            <footer class="sidebar-footer">
-                <p>Espace membre — achat de livres</p>
-            </footer>
-        </aside>
-
-        <main class="main">
-            <header class="header">
-                <div>
-                    <h2 id="page-title">Tableau de bord</h2>
-                    <p class="subtitle" id="page-subtitle">Consultez le catalogue de la bibliotheque</p>
-                </div>
-            </header>
-
-            <section id="view-dashboard" class="view active">
-                <div class="stats-grid">
-                    <article class="stat-card">
-                        <p class="stat-label">Total livres</p>
-                        <p class="stat-value" id="stat-total">—</p>
-                    </article>
-                    <article class="stat-card stat-green">
-                        <p class="stat-label">Disponibles</p>
-                        <p class="stat-value" id="stat-disponibles">—</p>
-                    </article>
-                    <article class="stat-card stat-orange">
-                        <p class="stat-label">Mes achats</p>
-                        <p class="stat-value" id="stat-mes-achats">—</p>
-                    </article>
-                    <article class="stat-card stat-blue">
-                        <p class="stat-label">Total depense</p>
-                        <p class="stat-value stat-value-sm" id="stat-depense">—</p>
-                    </article>
+                <div class="catalog-toolbar">
+                    <input type="search" id="search-input" class="catalog-search" placeholder="Rechercher un titre, auteur...">
+                    <div class="category-chips" id="category-chips">
+                        <button type="button" class="chip active" data-categorie="">Tous</button>
+                    </div>
+                    <div class="status-chips" id="status-chips">
+                        <button type="button" class="chip active" data-statut="">Tous</button>
+                        <button type="button" class="chip" data-statut="disponible">Disponible</button>
+                        <button type="button" class="chip" data-statut="emprunte">Emprunte</button>
+                        <button type="button" class="chip" data-statut="reserve">Reserve</button>
+                        <button type="button" class="chip" data-statut="vendu">Rupture</button>
+                    </div>
                 </div>
 
-                <div class="panels">
-                    <article class="panel">
-                        <h3>Par categorie</h3>
-                        <ul class="category-list" id="category-list"></ul>
-                    </article>
-                    <article class="panel">
-                        <h3>Ajouts recents</h3>
-                        <ul class="recent-list" id="recent-list"></ul>
-                    </article>
+                <div class="books-grid" id="books-grid">
+                    <p class="catalog-loading">Chargement du catalogue...</p>
                 </div>
             </section>
 
-            <section id="view-livres" class="view">
-                <div class="filters">
-                    <input type="search" id="search-input" placeholder="Rechercher titre, auteur, ISBN...">
-                    <select id="filter-categorie">
-                        <option value="">Toutes categories</option>
-                    </select>
-                    <select id="filter-statut">
-                        <option value="">Tous statuts</option>
-                        <option value="disponible">Disponible</option>
-                        <option value="emprunte">Emprunte</option>
-                        <option value="reserve">Reserve</option>
-                        <option value="vendu">Vendu</option>
-                    </select>
-                    <button class="btn btn-secondary" id="btn-refresh">Actualiser</button>
-                </div>
-
-                <div class="table-wrapper">
-                    <table class="books-table">
-                        <thead>
-                            <tr>
-                                <th>Titre</th>
-                                <th>Auteur</th>
-                                <th>Categorie</th>
-                                <th>Prix</th>
-                                <th>Annee</th>
-                                <th>Statut</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="books-tbody">
-                            <tr><td colspan="7" class="loading">Chargement...</td></tr>
-                        </tbody>
-                    </table>
+            <!-- Emprunts -->
+            <section id="page-emprunts" class="page">
+                <header class="page-header">
+                    <h2>Mes emprunts</h2>
+                    <p class="subtitle">Livres empruntes et dates de retour</p>
+                </header>
+                <div class="purchases-grid" id="borrows-grid">
+                    <p class="catalog-loading">Chargement...</p>
                 </div>
             </section>
 
-            <section id="view-achats" class="view">
-                <div class="table-wrapper">
-                    <table class="books-table">
-                        <thead>
-                            <tr>
-                                <th>Titre</th>
-                                <th>Auteur</th>
-                                <th>Categorie</th>
-                                <th>Prix paye</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody id="achats-tbody">
-                            <tr><td colspan="5" class="loading">Chargement...</td></tr>
-                        </tbody>
-                    </table>
+            <!-- Reservations -->
+            <section id="page-reservations" class="page">
+                <header class="page-header">
+                    <h2>Mes reservations</h2>
+                    <p class="subtitle">Livres reserves en attente de disponibilite</p>
+                </header>
+                <div class="purchases-grid" id="reservations-grid">
+                    <p class="catalog-loading">Chargement...</p>
                 </div>
             </section>
 
-            <section id="view-profil" class="view">
-                <article class="panel profile-panel">
-                    <h3>Mon compte</h3>
+            <!-- Achats (cartes, pas de tableau) -->
+            <section id="page-achats" class="page">
+                <header class="page-header">
+                    <h2>Mes achats</h2>
+                    <p class="subtitle">Vos livres acquis</p>
+                </header>
+                <div class="purchases-grid" id="purchases-grid">
+                    <p class="catalog-loading">Chargement...</p>
+                </div>
+            </section>
+
+            <!-- Profil -->
+            <section id="page-profil" class="page">
+                <header class="page-header">
+                    <h2>Mon profil</h2>
+                    <p class="subtitle">Gerer votre compte membre</p>
+                </header>
+                <article class="panel profile-panel profile-panel-full">
                     <form id="profile-form" class="profile-form">
                         <div class="form-grid">
                             <label>Nom *<input type="text" id="profile-nom" required></label>
@@ -144,7 +113,6 @@
                         <label>Email<input type="email" id="profile-email" disabled></label>
                         <label>Telephone<input type="tel" id="profile-telephone"></label>
                         <label>Membre depuis<input type="text" id="profile-date" disabled></label>
-
                         <hr class="profile-divider">
                         <h4>Changer le mot de passe</h4>
                         <p class="profile-hint">Min. 8 caracteres, 1 majuscule, 1 minuscule, 1 chiffre.</p>
@@ -163,8 +131,8 @@
 
     <div class="toast" id="toast"></div>
 
-    <script src="js/config.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/config.js?v=13"></script>
+    <script src="js/api.js?v=13"></script>
+    <script src="js/app.js?v=13"></script>
 </body>
 </html>

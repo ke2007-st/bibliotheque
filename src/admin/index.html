@@ -25,6 +25,8 @@
             <nav class="admin-nav">
                 <button class="admin-nav-btn active" data-view="dashboard">Tableau de bord</button>
                 <button class="admin-nav-btn" data-view="livres">Gestion livres</button>
+                <button class="admin-nav-btn" data-view="emprunts">Retours emprunts</button>
+                <button class="admin-nav-btn" data-view="reservations">Reservations</button>
                 <button class="admin-nav-btn" data-view="membres">Membres</button>
             </nav>
 
@@ -48,15 +50,23 @@
 
             <section id="admin-view-dashboard" class="admin-view active">
                 <div class="admin-stats-grid">
-                    <article class="admin-stat"><p>Total livres</p><strong id="adm-stat-livres">—</strong></article>
-                    <article class="admin-stat green"><p>Disponibles</p><strong id="adm-stat-dispo">—</strong></article>
-                    <article class="admin-stat orange"><p>Empruntes</p><strong id="adm-stat-emprunt">—</strong></article>
-                    <article class="admin-stat blue"><p>Membres</p><strong id="adm-stat-membres">—</strong></article>
+                    <article class="admin-stat"><p>Titres</p><strong id="adm-stat-livres">—</strong></article>
+                    <article class="admin-stat green"><p>Exemplaires</p><strong id="adm-stat-exemplaires">—</strong></article>
+                    <article class="admin-stat blue"><p>Stock disponible</p><strong id="adm-stat-stock">—</strong></article>
+                    <article class="admin-stat orange"><p>Emprunts actifs</p><strong id="adm-stat-emprunt">—</strong></article>
+                    <article class="admin-stat"><p>Reservations</p><strong id="adm-stat-reservations">—</strong></article>
+                    <article class="admin-stat"><p>Ruptures</p><strong id="adm-stat-ruptures">—</strong></article>
+                    <article class="admin-stat"><p>Achats</p><strong id="adm-stat-achats">—</strong></article>
+                    <article class="admin-stat"><p>Membres</p><strong id="adm-stat-membres">—</strong></article>
                 </div>
                 <div class="admin-panels">
                     <article class="admin-panel">
-                        <h3>Categories</h3>
+                        <h3>Categories (titres / exemplaires)</h3>
                         <ul id="adm-category-list"></ul>
+                    </article>
+                    <article class="admin-panel">
+                        <h3>Derniers livres ajoutes</h3>
+                        <ul id="adm-recent-books"></ul>
                     </article>
                     <article class="admin-panel">
                         <h3>Nouveaux membres</h3>
@@ -73,6 +83,7 @@
                         <option value="disponible">Disponible</option>
                         <option value="emprunte">Emprunte</option>
                         <option value="reserve">Reserve</option>
+                        <option value="vendu">Vendu / Rupture</option>
                     </select>
                     <button class="btn-admin btn-admin-secondary" id="adm-refresh-books">Actualiser</button>
                 </div>
@@ -84,11 +95,58 @@
                                 <th>Auteur</th>
                                 <th>Categorie</th>
                                 <th>Prix</th>
+                                <th>Exemplaires</th>
+                                <th>Stock</th>
+                                <th>Emprunts</th>
                                 <th>Statut</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="adm-books-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="admin-view-emprunts" class="admin-view">
+                <p class="admin-subtitle" style="margin-bottom:1rem;">Validez le retour physique des livres pour remettre a jour le stock.</p>
+                <div class="admin-filters">
+                    <button class="btn-admin btn-admin-secondary" id="adm-refresh-emprunts">Actualiser</button>
+                </div>
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Livre</th>
+                                <th>Membre</th>
+                                <th>Emprunte le</th>
+                                <th>Retour prevu</th>
+                                <th>Stock actuel</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adm-emprunts-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="admin-view-reservations" class="admin-view">
+                <p class="admin-subtitle" style="margin-bottom:1rem;">File d attente des membres pour les livres indisponibles.</p>
+                <div class="admin-filters">
+                    <button class="btn-admin btn-admin-secondary" id="adm-refresh-reservations">Actualiser</button>
+                </div>
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Livre</th>
+                                <th>Membre</th>
+                                <th>Reserve le</th>
+                                <th>Stock</th>
+                                <th>Statut livre</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adm-reservations-tbody"></tbody>
                     </table>
                 </div>
             </section>
@@ -130,6 +188,8 @@
                     <label>Categorie<input type="text" id="adm-book-categorie" value="General"></label>
                     <label>Annee<input type="number" id="adm-book-annee" min="1000" max="2100"></label>
                     <label>Prix (€)<input type="number" id="adm-book-prix" min="0" step="0.01" value="9.99"></label>
+                    <label>Nombre d exemplaires *<input type="number" id="adm-book-stock-total" min="0" value="1" required></label>
+                    <label>Stock disponible<input type="number" id="adm-book-stock-dispo" min="0" value="1"></label>
                     <label>Statut
                         <select id="adm-book-statut">
                             <option value="disponible">Disponible</option>

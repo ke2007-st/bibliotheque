@@ -95,6 +95,30 @@ const AdminUsersAPI = {
     },
 };
 
+const AdminEmpruntsAPI = {
+    getAll() {
+        return adminRequest(ADMIN_API.endpoints.emprunts);
+    },
+    confirmReturn(empruntId) {
+        return adminRequest(ADMIN_API.endpoints.emprunts, {
+            method: 'DELETE',
+            body: JSON.stringify({ emprunt_id: empruntId }),
+        });
+    },
+};
+
+const AdminReservationsAPI = {
+    getAll() {
+        return adminRequest(ADMIN_API.endpoints.reservations);
+    },
+    cancel(reservationId) {
+        return adminRequest(ADMIN_API.endpoints.reservations, {
+            method: 'DELETE',
+            body: JSON.stringify({ reservation_id: reservationId }),
+        });
+    },
+};
+
 function showToast(message, type) {
     const toast = document.getElementById('toast');
     if (!toast) return;

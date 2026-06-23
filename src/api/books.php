@@ -15,7 +15,8 @@ try {
 
     if (isset($_GET['id'])) {
         $stmt = $pdo->prepare(
-            'SELECT id, titre, auteur, isbn, categorie, annee, statut, prix, description, date_ajout
+            'SELECT id, titre, auteur, isbn, categorie, annee, statut, prix, description,
+                    bio_auteur, pages, editeur, note, date_ajout
              FROM livres WHERE id = ?'
         );
         $stmt->execute([(int) $_GET['id']]);
