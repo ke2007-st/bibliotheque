@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma Bibliotheque</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">📚</span>
+                <h1>Biblio<span>Dash</span></h1>
+            </div>
+
+            <div class="user-card" id="user-card">
+                <div class="user-avatar" id="user-avatar">?</div>
+                <div>
+                    <p class="user-name" id="user-name">Chargement...</p>
+                    <span class="user-role role-membre" id="user-role">Membre</span>
+                </div>
+            </div>
+
+            <nav class="nav">
+                <button class="nav-btn active" data-view="dashboard">Tableau de bord</button>
+                <button class="nav-btn" data-view="livres">Catalogue</button>
+                <button class="nav-btn" data-view="achats">Mes achats</button>
+                <button class="nav-btn" data-view="profil">Mon profil</button>
+            </nav>
+
+            <div class="sidebar-actions">
+                <button class="btn btn-secondary btn-full" id="btn-logout">Deconnexion</button>
+            </div>
+
+            <footer class="sidebar-footer">
+                <p>Espace membre — achat de livres</p>
+            </footer>
+        </aside>
+
+        <main class="main">
+            <header class="header">
+                <div>
+                    <h2 id="page-title">Tableau de bord</h2>
+                    <p class="subtitle" id="page-subtitle">Consultez le catalogue de la bibliotheque</p>
+                </div>
+            </header>
+
+            <section id="view-dashboard" class="view active">
+                <div class="stats-grid">
+                    <article class="stat-card">
+                        <p class="stat-label">Total livres</p>
+                        <p class="stat-value" id="stat-total">—</p>
+                    </article>
+                    <article class="stat-card stat-green">
+                        <p class="stat-label">Disponibles</p>
+                        <p class="stat-value" id="stat-disponibles">—</p>
+                    </article>
+                    <article class="stat-card stat-orange">
+                        <p class="stat-label">Mes achats</p>
+                        <p class="stat-value" id="stat-mes-achats">—</p>
+                    </article>
+                    <article class="stat-card stat-blue">
+                        <p class="stat-label">Total depense</p>
+                        <p class="stat-value stat-value-sm" id="stat-depense">—</p>
+                    </article>
+                </div>
+
+                <div class="panels">
+                    <article class="panel">
+                        <h3>Par categorie</h3>
+                        <ul class="category-list" id="category-list"></ul>
+                    </article>
+                    <article class="panel">
+                        <h3>Ajouts recents</h3>
+                        <ul class="recent-list" id="recent-list"></ul>
+                    </article>
+                </div>
+            </section>
+
+            <section id="view-livres" class="view">
+                <div class="filters">
+                    <input type="search" id="search-input" placeholder="Rechercher titre, auteur, ISBN...">
+                    <select id="filter-categorie">
+                        <option value="">Toutes categories</option>
+                    </select>
+                    <select id="filter-statut">
+                        <option value="">Tous statuts</option>
+                        <option value="disponible">Disponible</option>
+                        <option value="emprunte">Emprunte</option>
+                        <option value="reserve">Reserve</option>
+                        <option value="vendu">Vendu</option>
+                    </select>
+                    <button class="btn btn-secondary" id="btn-refresh">Actualiser</button>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="books-table">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Auteur</th>
+                                <th>Categorie</th>
+                                <th>Prix</th>
+                                <th>Annee</th>
+                                <th>Statut</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="books-tbody">
+                            <tr><td colspan="7" class="loading">Chargement...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="view-achats" class="view">
+                <div class="table-wrapper">
+                    <table class="books-table">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Auteur</th>
+                                <th>Categorie</th>
+                                <th>Prix paye</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="achats-tbody">
+                            <tr><td colspan="5" class="loading">Chargement...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="view-profil" class="view">
+                <article class="panel profile-panel">
+                    <h3>Mon compte</h3>
+                    <form id="profile-form" class="profile-form">
+                        <div class="form-grid">
+                            <label>Nom *<input type="text" id="profile-nom" required></label>
+                            <label>Prenom *<input type="text" id="profile-prenom" required></label>
+                        </div>
+                        <label>Email<input type="email" id="profile-email" disabled></label>
+                        <label>Telephone<input type="tel" id="profile-telephone"></label>
+                        <label>Membre depuis<input type="text" id="profile-date" disabled></label>
+
+                        <hr class="profile-divider">
+                        <h4>Changer le mot de passe</h4>
+                        <p class="profile-hint">Min. 8 caracteres, 1 majuscule, 1 minuscule, 1 chiffre.</p>
+                        <div class="form-grid">
+                            <label>Nouveau mot de passe<input type="password" id="profile-password" minlength="8"></label>
+                            <label>Confirmer<input type="password" id="profile-confirm" minlength="8"></label>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        </div>
+                    </form>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

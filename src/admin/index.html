@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — BiblioDash</title>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div class="admin-app">
+        <aside class="admin-sidebar">
+            <div class="admin-logo">
+                <span class="admin-shield">🛡️</span>
+                <div>
+                    <h1>Admin<span>Panel</span></h1>
+                    <p class="admin-secure-label">Zone securisee</p>
+                </div>
+            </div>
+
+            <div class="admin-user-card" id="admin-user-card">
+                <p class="admin-user-name" id="admin-user-name">—</p>
+                <span class="admin-role-badge">Administrateur</span>
+            </div>
+
+            <nav class="admin-nav">
+                <button class="admin-nav-btn active" data-view="dashboard">Tableau de bord</button>
+                <button class="admin-nav-btn" data-view="livres">Gestion livres</button>
+                <button class="admin-nav-btn" data-view="membres">Membres</button>
+            </nav>
+
+            <div class="admin-logout-wrap">
+                <button class="btn-admin btn-admin-danger btn-full" id="btn-admin-logout">Deconnexion</button>
+            </div>
+
+            <footer class="admin-sidebar-footer">
+                <p>Administration — zone securisee</p>
+            </footer>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-header">
+                <div>
+                    <h2 id="admin-page-title">Tableau de bord</h2>
+                    <p class="admin-subtitle">Administration de la bibliotheque</p>
+                </div>
+                <button class="btn-admin btn-admin-primary" id="btn-admin-add-book">+ Ajouter un livre</button>
+            </header>
+
+            <section id="admin-view-dashboard" class="admin-view active">
+                <div class="admin-stats-grid">
+                    <article class="admin-stat"><p>Total livres</p><strong id="adm-stat-livres">—</strong></article>
+                    <article class="admin-stat green"><p>Disponibles</p><strong id="adm-stat-dispo">—</strong></article>
+                    <article class="admin-stat orange"><p>Empruntes</p><strong id="adm-stat-emprunt">—</strong></article>
+                    <article class="admin-stat blue"><p>Membres</p><strong id="adm-stat-membres">—</strong></article>
+                </div>
+                <div class="admin-panels">
+                    <article class="admin-panel">
+                        <h3>Categories</h3>
+                        <ul id="adm-category-list"></ul>
+                    </article>
+                    <article class="admin-panel">
+                        <h3>Nouveaux membres</h3>
+                        <ul id="adm-members-list"></ul>
+                    </article>
+                </div>
+            </section>
+
+            <section id="admin-view-livres" class="admin-view">
+                <div class="admin-filters">
+                    <input type="search" id="adm-search" placeholder="Rechercher...">
+                    <select id="adm-filter-statut">
+                        <option value="">Tous statuts</option>
+                        <option value="disponible">Disponible</option>
+                        <option value="emprunte">Emprunte</option>
+                        <option value="reserve">Reserve</option>
+                    </select>
+                    <button class="btn-admin btn-admin-secondary" id="adm-refresh-books">Actualiser</button>
+                </div>
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Auteur</th>
+                                <th>Categorie</th>
+                                <th>Prix</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adm-books-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="admin-view-membres" class="admin-view">
+                <div class="admin-filters">
+                    <input type="search" id="adm-search-users" placeholder="Rechercher membre...">
+                    <button class="btn-admin btn-admin-secondary" id="adm-refresh-users">Actualiser</button>
+                </div>
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Email</th>
+                                <th>Inscription</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adm-users-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="admin-modal-overlay" id="admin-modal">
+        <div class="admin-modal">
+            <header class="admin-modal-header">
+                <h3 id="admin-modal-title">Ajouter un livre</h3>
+                <button class="admin-modal-close" id="admin-modal-close">&times;</button>
+            </header>
+            <form id="admin-book-form">
+                <input type="hidden" id="adm-book-id">
+                <div class="admin-form-grid">
+                    <label>Titre *<input type="text" id="adm-book-titre" required></label>
+                    <label>Auteur *<input type="text" id="adm-book-auteur" required></label>
+                    <label>ISBN<input type="text" id="adm-book-isbn"></label>
+                    <label>Categorie<input type="text" id="adm-book-categorie" value="General"></label>
+                    <label>Annee<input type="number" id="adm-book-annee" min="1000" max="2100"></label>
+                    <label>Prix (€)<input type="number" id="adm-book-prix" min="0" step="0.01" value="9.99"></label>
+                    <label>Statut
+                        <select id="adm-book-statut">
+                            <option value="disponible">Disponible</option>
+                            <option value="emprunte">Emprunte</option>
+                            <option value="reserve">Reserve</option>
+                            <option value="vendu">Vendu</option>
+                        </select>
+                    </label>
+                </div>
+                <label>Description<textarea id="adm-book-description" rows="3"></textarea></label>
+                <div class="admin-form-actions">
+                    <button type="button" class="btn-admin btn-admin-secondary" id="adm-book-cancel">Annuler</button>
+                    <button type="submit" class="btn-admin btn-admin-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="js/admin-config.js"></script>
+    <script src="js/admin-api.js"></script>
+    <script src="js/admin-app.js"></script>
+</body>
+</html>

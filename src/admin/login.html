@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — Connexion</title>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-auth-page">
+    <div class="admin-auth-container">
+        <div class="admin-auth-card">
+            <div class="admin-auth-header">
+                <span class="admin-logo-icon">🛡️</span>
+                <span class="admin-badge">SECURISE</span>
+                <h1>Admin<span>Panel</span></h1>
+                <p>Acces restreint — authentification requise</p>
+            </div>
+
+            <form id="admin-login-form" class="admin-auth-form">
+                <label>
+                    Email administrateur
+                    <input type="email" id="email" required autocomplete="username" placeholder="votre@email.com">
+                </label>
+                <label>
+                    Mot de passe
+                    <input type="password" id="mot_de_passe" required autocomplete="current-password" placeholder="Votre mot de passe">
+                </label>
+                <button type="submit" class="btn-admin btn-admin-primary btn-full">Acceder au panneau</button>
+            </form>
+
+            <p class="admin-auth-footer">
+                <a href="../login.html">Retour espace membre</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="js/admin-config.js"></script>
+    <script src="js/admin-api.js"></script>
+    <script src="js/admin-login.js"></script>
+</body>
+</html>
