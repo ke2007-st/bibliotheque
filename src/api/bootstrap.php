@@ -2,6 +2,41 @@
 
 declare(strict_types=1);
 
+function getAllowedOrigins(): array
+{
+    $raw = getenv('CORS_ORIGINS') ?: '';
+
+    if ($raw === '') {
+        return [];
+    }
+
+    return array_values(array_filter(array_map('trim', explode(',', $raw))));
+}
+
+function isCrossOriginMode(): bool
+{
+    return getAllowedOrigins() !== [];
+}
+
+function handleCors(): void
+{
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    $allowed = getAllowedOrigins();
+
+    if ($origin !== '' && in_array($origin, $allowed, true)) {
+        header('Access-Control-Allow-Origin: ' . $origin);
+        header('Access-Control-Allow-Credentials: true');
+        header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+        header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token');
+        header('Vary: Origin');
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(204);
+        exit;
+    }
+}
+
 function setSecurityHeaders(): void
 {
     header('Content-Type: application/json; charset=utf-8');
@@ -12,12 +47,8 @@ function setSecurityHeaders(): void
     header('Pragma: no-cache');
 }
 
+handleCors();
 setSecurityHeaders();
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
-    exit;
-}
 
 define('DB_HOST', getenv('DB_HOST') ?: 'db');
 define('DB_NAME', getenv('DB_NAME') ?: 'php_docker');
@@ -140,12 +171,16 @@ function startSession(string $name): void
     }
 
     session_name($name);
+
+    $crossOrigin = isCrossOriginMode();
+    $isHttps = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+
     session_set_cookie_params([
         'lifetime' => 0,
         'path' => '/',
-        'secure' => false,
+        'secure' => $crossOrigin || $isHttps,
         'httponly' => true,
-        'samesite' => 'Strict',
+        'samesite' => $crossOrigin ? 'None' : 'Strict',
     ]);
     session_start();
 }

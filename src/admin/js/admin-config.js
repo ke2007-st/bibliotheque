@@ -1,5 +1,5 @@
 const ADMIN_API = {
-    baseUrl: '/api/admin',
+    baseUrl: window.__BIBLIO_ADMIN_API_URL__ || '/api/admin',
     endpoints: {
         login: '/auth/login.php',
         logout: '/auth/logout.php',

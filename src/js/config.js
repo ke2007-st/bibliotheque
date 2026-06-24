@@ -1,7 +1,7 @@
 let userCsrfToken = '';
 
 const API_CONFIG = {
-    baseUrl: '/api',
+    baseUrl: window.__BIBLIO_API_URL__ || '/api',
     endpoints: {
         books: '/books.php',
         stats: '/stats.php',

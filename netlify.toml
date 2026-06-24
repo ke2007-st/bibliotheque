@@ -1,0 +1,4 @@
+# Netlify — alternative au frontend Cloudflare Pages
+[build]
+  command = "powershell -ExecutionPolicy Bypass -File deploy/prepare-frontend.ps1"
+  publish = "deploy/frontend-dist"

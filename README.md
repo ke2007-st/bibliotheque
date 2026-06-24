@@ -2,6 +2,14 @@
 
 Application de gestion de bibliotheque en **PHP pur**, **HTML/CSS/JS vanilla**, avec **Docker** (Nginx + PHP-FPM + MariaDB).
 
+## Mise en ligne (front + back separes)
+
+Guide complet : **[DEPLOY.md](DEPLOY.md)**
+
+- **Frontend** → Cloudflare Pages ou Netlify (`*.pages.dev` permanent)
+- **Backend API** → Railway (`*.up.railway.app` permanent)
+- **Base** → MariaDB sur Railway
+
 ## Demarrage rapide
 
 ```powershell

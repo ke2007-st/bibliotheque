@@ -1,0 +1,10 @@
+# Cloudflare Pages — hebergement frontend (URL permanente *.pages.dev)
+# Dashboard : https://dash.cloudflare.com → Workers & Pages → Create → Connect Git
+
+name = "biblio-front"
+pages_build_output_dir = "deploy/frontend-dist"
+
+[vars]
+# Remplacer apres deploiement du backend
+BIBLIO_API_URL = "https://VOTRE-BACKEND.up.railway.app/api"
+BIBLIO_ADMIN_API_URL = "https://VOTRE-BACKEND.up.railway.app/api/admin"
